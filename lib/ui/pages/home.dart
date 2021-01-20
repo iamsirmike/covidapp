@@ -1,12 +1,12 @@
-import 'package:advanced_covid/services/networkhelper.dart';
+import 'package:advanced_covid/core/viewModels/get_countryStart_VM.dart';
 import 'package:advanced_covid/utils/utils.dart';
-import 'package:advanced_covid/widgets/button.dart';
-import 'package:advanced_covid/widgets/countries.dart';
-import 'package:advanced_covid/widgets/navigation.dart';
-import 'package:advanced_covid/widgets/prevention.dart';
+import 'package:advanced_covid/ui/sharedWidgets/button.dart';
+import 'package:advanced_covid/ui/sharedWidgets/countries.dart';
+import 'package:advanced_covid/ui/sharedWidgets/prevention.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:provider/provider.dart';
 // import 'package:intl/intl.dart';
 
 class Home extends StatefulWidget {
@@ -25,59 +25,20 @@ class _HomeState extends State<Home> {
     return dropdownItems;
   }
 
-  var cases;
-  var death;
-  var recovered;
-  var active;
-  var critical;
-  var country;
-  var flag;
+  bool loading = false;
+  getvirus() {
+    Provider.of<CountryStatVM>(context, listen: false)
+        .ongetcountrystat(selectedCountry);
+  }
 
-  var allcases;
-  var alldeath;
-  var allrecovered;
-  var allactive;
-  var allcritical;
-
-  bool loading = true;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    getVirus();
-  }
-
-  void getVirus() async {
-    try {
-      loading = true;
-      NetworkHelper networkHelper = NetworkHelper(
-          'https://corona.lmao.ninja/v2/countries/$selectedCountry');
-      var data = await networkHelper.getCases();
-
-      NetworkHelper2 networkHelper2 =
-          NetworkHelper2('https://corona.lmao.ninja/v2/all');
-      var data2 = await networkHelper2.getAllCases();
-
-      setState(() {
-        cases = data['cases'];
-        death = data['deaths'];
-        recovered = data['recovered'];
-        active = data['active'];
-        critical = data['critical'];
-        country = data['country'];
-        flag = data['countryInfo']['flag'];
-
-        allcases = data2['cases'];
-        alldeath = data2['deaths'];
-        allrecovered = data2['recovered'];
-        allactive = data2['active'];
-        allcritical = data2['critical'];
-
-        loading = false;
-      });
-    } catch (e) {
-      print(e);
-    }
+    Future.delayed(Duration(seconds: 0), () {
+      Provider.of<CountryStatVM>(context, listen: false)
+          .ongetcountrystat(selectedCountry);
+    });
   }
 
   @override
@@ -86,7 +47,7 @@ class _HomeState extends State<Home> {
       backgroundColor: Colors.white,
       body: ModalProgressHUD(
         child: SafeArea(
-          child: ListView(
+          child: Column(
             children: <Widget>[
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,12 +75,6 @@ class _HomeState extends State<Home> {
                                 color: UIColors.color2,
                                 size: 25,
                               ),
-                              // Spacer(),
-                              // Icon(
-                              //   Icons.notifications_none,
-                              //   color: UIColors.color2,
-                              //   size: 25,
-                              // ),
                             ],
                           ),
                           Spacer(),
@@ -135,7 +90,6 @@ class _HomeState extends State<Home> {
                               Spacer(),
                               Container(
                                 width: screenWidth(context, 0.35),
-                                height: screenHeight(context, 0.07),
                                 decoration: BoxDecoration(
                                   color: UIColors.color2,
                                   borderRadius: BorderRadius.circular(20),
@@ -152,7 +106,6 @@ class _HomeState extends State<Home> {
                                       onChanged: (value) {
                                         setState(() {
                                           selectedCountry = value;
-                                          getVirus();
                                         });
                                       },
                                     ),
@@ -299,20 +252,6 @@ class _HomeState extends State<Home> {
         ),
         inAsyncCall: loading,
       ),
-      bottomNavigationBar: NavigationBar(
-          cases: cases,
-          recovered: recovered,
-          death: death,
-          active: active,
-          critical: critical,
-          country: country,
-          flag: flag,
-          allcases: allcases,
-          allrecovered: allrecovered,
-          alldeath: alldeath,
-          allactive: allactive,
-          allcritical: allcritical,
-          ),
     );
   }
 }
